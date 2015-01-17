@@ -1,0 +1,7 @@
+*.csv
+trigger
+build-tmp
+build_tmp
+data
+2d*
+
