@@ -62,6 +62,7 @@ int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時�
 String IP = "54.65.112.212";
 int PORT = 20000;
 int mode = 1;
+int total_count = 0;
 
 void setup(){
   size(1000, 750, OPENGL);
@@ -220,20 +221,22 @@ void receive(byte[] data, String ip, int port){
   data = subset(data, 0, data.length);
   String message = new String(data);
 
-  println(message);
+  //println(message);
 
   cap_data = split(message, ',');
   if(cap_data[8].equals("true")){
-    System.out.println("\""+cap_data[1]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
+    System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
   }else{
-    System.out.println("\""+cap_data[1]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
+    System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
   }
+  cap_data[0] = str(total_count);
+  total_count++;
 
   if(packet_count != 0){
-    if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
-      packets[packet_count] = new Packets(cap_data, user, myFont);
-      packet_count++;
-    }
+    //if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
+    packets[packet_count] = new Packets(cap_data, user, myFont);
+    packet_count++;
+    //}
   }else{
     first_passed_time = Integer.parseInt(cap_data[7]);
     packets[packet_count] = new Packets(cap_data, user, myFont);
@@ -242,21 +245,23 @@ void receive(byte[] data, String ip, int port){
   }
 }
 
-class Addr_IP {
-  String name;//名前  
-  int count;
+/*
+   class Addr_IP {
+   String name;//名前  
+   int count;
 
-  Addr_IP(String pname){
-    name = pname;
-    count = 0;
-  }
-  void addCount(){
-    count++;
-  }
-  void resetCount(){
-    count = 0;
-  }
-}
+   Addr_IP(String pname){
+   name = pname;
+   count = 0;
+   }
+   void addCount(){
+   count++;
+   }
+   void resetCount(){
+   count = 0;
+   }
+   }
+ */
 
 class Node {
   float x, y, z;
@@ -282,7 +287,7 @@ class Node {
 }
 
 class Packets {
-  String count;
+  int count;
   String protocol;
   int bytes;
   String my_ip;
@@ -294,7 +299,8 @@ class Packets {
   boolean trans_flag;
   String tcp_flag;
   float x, y, z;
-  float dst_x, dst_y, dst_z;
+  float dst_x, dst_y, dst_z;//パケットが向かうの座標
+  float src_x, src_y, src_z;//パケットが出てくる座標
   float p_size;
   boolean alive_flag;
   float f_x, f_y, f_z;
@@ -309,7 +315,7 @@ class Packets {
   int create_time;
 
   Packets(String packets[], Node node, PFont font){
-    count = packets[0];
+    count = Integer.parseInt(packets[0]);
     protocol = packets[1];
     bytes = Integer.parseInt(packets[2]);
     my_ip = packets[3];
@@ -339,17 +345,19 @@ class Packets {
 
   }
 
-  private boolean checkPre(String ip, String port, String time, String flag){
-    int time_now = Integer.parseInt(time) - first_passed_time;
-    int time_pre = pass_time;
-    boolean flag2 = Boolean.valueOf(flag); 
-    if(ip.equals(srv_ip) && port.equals(srv_port) && trans_flag == flag2 &&  time_pre +10 > time_now){
-      println("cut");
-      return false;
-    }else{
-      return true;
-    }
-  }
+  /*
+     private boolean checkPre(String ip, String port, String time, String flag){
+     int time_now = Integer.parseInt(time) - first_passed_time;
+     int time_pre = pass_time;
+     boolean flag2 = Boolean.valueOf(flag); 
+     if(ip.equals(srv_ip) && port.equals(srv_port) && trans_flag == flag2 &&  time_pre +50 > time_now){
+     println("cut\n\n\n\n");
+     return false;
+     }else{
+     return true;
+     }
+     }
+   */
 
   private boolean checkSec(){
     int now_time;
@@ -409,9 +417,8 @@ class Packets {
 
 
 
-      strokeWeight(0.8);
       //line(0, 0, 0, ip_x, ip_y, ip_z);
-      strokeWeight(3);
+      drawRule();
       drawPrism();
 
       if(stopflag){
@@ -424,7 +431,6 @@ class Packets {
         life--;
       }else{
         //world座標をwindow座標に変換し、マウスと当たり判定を行う
-        drawRule();
       }
       return true;
     }else{
@@ -440,12 +446,15 @@ class Packets {
     port_x = port_y = port_z = 0;
     set_ip_xyz();
     if(trans_flag){
-      x = node_x;
-      y = node_y;
-      z = node_z;
+      src_x = node_x;
+      src_y = node_y;
+      src_z = node_z;
       dst_x = ip_x;
       dst_y = ip_y;
       dst_z = ip_z;
+      x = src_x;
+      y = src_y;
+      z = src_z;
       if(dst_z == -box_size/2 || dst_z == box_size/2){
         rotz = atan2(dst_z, dst_y);
         if(dst_z > 0 && dst_x > 0){
@@ -468,9 +477,12 @@ class Packets {
         }
       }
     }else{
-      x = ip_x;
-      y = ip_y;
-      z = ip_z;
+      src_x = ip_x;
+      src_y = ip_y;
+      src_z = ip_z;
+      x = src_x;
+      y = src_y;
+      z = src_z;
       dst_x = node_x;
       dst_y = node_y;
       dst_z = node_z;
@@ -509,61 +521,33 @@ class Packets {
     set_ip_xyz();
     set_port_xyz();
     if(trans_flag){
-      x = port_x;
-      y = port_y;
-      z = port_z;
+      src_x = port_x;
+      src_y = port_y;
+      src_z = port_z;
+      x = src_x;
+      y = src_y;
+      z = src_z;
       dst_x = ip_x;
       dst_y = ip_y;
       dst_z = ip_z;
-      if(dst_z == -box_size/2 || dst_z == box_size/2){
-        rotz = atan2(dst_z, dst_y);
-        if(dst_z > 0 && dst_x > 0){
-          rotz = -rotz;
-        }else if(dst_z < 0 && dst_x < 0){
-          rotz = -rotz;
-        }
-      }else{
-        rotz = -atan2(dst_x, dst_y);
-      }
-      if(dst_z < 0){
-        roty = PI*3/2 + atan2(dst_x, dst_z);
-        if(dst_x < 0){
-          rotz = -rotz;
-        }
-      }else{
-        roty = PI/2 + atan2(dst_x, dst_z);
-        if(dst_x > 0){
-          rotz = -rotz;
-        }
-      }
+      if(dst_y > y) rotz = -atan2(dst_x - x, dst_y - y);
+      else rotz = atan2(dst_x - x, y - dst_y) + PI;
+      if(dst_z < 0) roty = PI*3/2 + atan2(dst_x, dst_z);
+      else roty = PI/2 + atan2(dst_x, dst_z);
     }else{
-      x = ip_x;
-      y = ip_y;
-      z = ip_z;
+      src_x = ip_x;
+      src_y = ip_y;
+      src_z = ip_z;
+      x = src_x;
+      y = src_y;
+      z = src_z;
       dst_x = port_x;
       dst_y = port_y;
       dst_z = port_z;
-      if(z == -box_size/2 || z == box_size/2){
-        rotz = atan2(z, y);
-        if(z > 0 && x > 0){
-          rotz = -rotz;
-        }else if(z < 0 && x < 0){
-          rotz = -rotz;
-        }
-      }else{
-        rotz = -atan2(x, y);
-      }
-      if(z < 0){
-        roty = PI/2 + atan2(x, z);
-        if(x > 0){
-          rotz = -rotz;
-        }
-      }else{
-        roty = -PI/2 + atan2(x, z);
-        if(x < 0){
-          rotz = -rotz;
-        }
-      }
+      if(dst_y > y) rotz = -atan2(x - dst_x, dst_y - y) + PI;
+      else rotz = atan2(x - dst_x, y - dst_y);
+      if(z < 0) roty = PI/2 + atan2(x, z);
+      else roty = -PI/2 + atan2(x, z);
     }
     f_x = (dst_x - x)/float(life);
     f_y = (dst_y - y)/float(life);
@@ -621,32 +605,9 @@ class Packets {
   }
 
   private void drawRule(){
-    /*
        strokeWeight(0.8);
-       line(0, 0, 0, ip_x, ip_y, ip_z);
-       strokeWeight(1.3);
-       stroke(red, green, 0, 30);
-       if(lo_state == 0){
-       line(-box_size/2, ip_y, ip_z, box_size/2, ip_y, ip_z);
-       line(ip_x, -box_size/2, ip_z, ip_x, box_size/2, ip_z);
-       }else if(lo_state == 1){
-       line(-box_size/2, ip_y, ip_z, box_size/2, ip_y, ip_z);
-       line(ip_x, -box_size/2, ip_z, ip_x, box_size/2, ip_z);
-       }else if(lo_state == 2){
-       line(ip_x, -box_size/2, ip_z, ip_x, box_size/2, ip_z);
-       line(ip_x, ip_y, -box_size/2, ip_x, ip_y, box_size/2);
-       }else{
-       line(ip_x, -box_size/2, ip_z, ip_x, box_size/2, ip_z);
-       line(ip_x, ip_y, -box_size/2, ip_x, ip_y, box_size/2);
-       }
-     */
-    /* 重い
-       noFill();
-       pushMatrix();
-       translate(ip_x, ip_y, ip_z);
-       sphere(p_size/4);
-       popMatrix();
-     */
+       line(src_x, src_y, src_z, dst_x, dst_y, dst_z);
+  /*
 
     hint(DISABLE_DEPTH_TEST);
     pushMatrix();
@@ -672,39 +633,64 @@ class Packets {
      */
   }
 
+  private boolean cmp_p(String s_ip, int m_port, int s_port){
+    if(s_ip.equals(srv_ip) && s_port == srv_port && m_port == my_port){
+      return true;
+    }else return false;
+  }
+
   private void drawPrism(){
-    float size = p_size;
-    if(trans_flag){
-      size = -size;
+    int status = 0;
+
+    /*
+    if(count != 0 && tcp_flag.equals("ACK")){
+      if(packets[count - 1].cmp_p(srv_ip, my_port, srv_port)){
+        if(packets[count - 1].alive_flag){
+          if(packets[count - 1].tcp_flag.equals("ACK")){
+            status = 1;
+          }
+        }
+      }
     }
-    pushMatrix();
-    translate(x, y, z);
-    rotateY(roty);
-    rotateZ(rotz);
-    beginShape();
-    vertex(0, -size, 0);
-    vertex(-size/2, size, -size/2);
-    vertex(size/2, size, -size/2);
-    endShape(CLOSE);
+    */
+    if(status == 1){
+      strokeWeight(0.8);
+      line(x, y, z, packets[count -1].x, packets[count -1].y, packets[count -1].z);
+    }else{
+      strokeWeight(3);
+      float size = p_size;
+      if(trans_flag){
+        size = -size;
+      }
+      pushMatrix();
+      translate(x, y, z);
+      rotateY(roty);
+      rotateZ(rotz);
+      beginShape();
+      vertex(0, -size, 0);
+      vertex(-size/2, size, -size/2);
+      vertex(size/2, size, -size/2);
+      endShape(CLOSE);
 
-    beginShape();
-    vertex(0, -size, 0);
-    vertex(-size/2, size, -size/2);
-    vertex(-size/2, size, size/2);
-    endShape(CLOSE);
+      beginShape();
+      vertex(0, -size, 0);
+      vertex(-size/2, size, -size/2);
+      vertex(-size/2, size, size/2);
+      endShape(CLOSE);
 
-    beginShape();
-    vertex(0, -size, 0);
-    vertex(size/2, size, size/2);
-    vertex(size/2, size, -size/2);
-    endShape(CLOSE);
+      beginShape();
+      vertex(0, -size, 0);
+      vertex(size/2, size, size/2);
+      vertex(size/2, size, -size/2);
+      endShape(CLOSE);
 
-    beginShape();
-    vertex(0, -size, 0);
-    vertex(-size/2, size, size/2);
-    vertex(size/2, size, size/2);
-    endShape(CLOSE);
-    popMatrix();
+      beginShape();
+      vertex(0, -size, 0);
+      vertex(-size/2, size, size/2);
+      vertex(size/2, size, size/2);
+      endShape(CLOSE);
+      popMatrix();
+    }
   }
 }
 
@@ -741,10 +727,12 @@ void changeMode(int num){
   mode = num;
   for(int i=last_v_num;i<packet_count;i++){
     if(packets[i] == null) break;
+    /*
     if(packets[i].checkSec()){
       packets[i].killFlag();
     }
-    else if(packets[i].alive_flag){
+    */
+    if(packets[i].alive_flag){
       if(mode == 3 || mode == 4) packets[i].mode3();
       else if(mode == 1 || mode == 2) packets[i].mode1();
       else if(mode == 5) packets[i].mode3();
