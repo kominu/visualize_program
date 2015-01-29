@@ -418,6 +418,7 @@ class Packets {
 
 
       //line(0, 0, 0, ip_x, ip_y, ip_z);
+      noFill();
       drawRule();
       drawPrism();
 
@@ -532,8 +533,8 @@ class Packets {
       dst_z = ip_z;
       if(dst_y > y) rotz = -atan2(dst_x - x, dst_y - y);
       else rotz = atan2(dst_x - x, y - dst_y) + PI;
-      if(dst_z < 0) roty = PI*3/2 + atan2(dst_x, dst_z);
-      else roty = PI/2 + atan2(dst_x, dst_z);
+      if(dst_z < z) roty = -PI/2 - atan2(dst_x - x, z - dst_z);
+      else roty = -PI*3/2 + atan2(dst_x - x, dst_z - z);
     }else{
       src_x = ip_x;
       src_y = ip_y;
@@ -546,8 +547,8 @@ class Packets {
       dst_z = port_z;
       if(dst_y > y) rotz = -atan2(x - dst_x, dst_y - y) + PI;
       else rotz = atan2(x - dst_x, y - dst_y);
-      if(z < 0) roty = PI/2 + atan2(x, z);
-      else roty = -PI/2 + atan2(x, z);
+      if(z < dst_z) roty = PI/2 - atan2(x - dst_x, dst_z - z);
+      else roty = PI*3/2 + atan2(x - dst_x, z - dst_z);
     }
     f_x = (dst_x - x)/float(life);
     f_y = (dst_y - y)/float(life);
