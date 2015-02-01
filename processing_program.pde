@@ -60,6 +60,7 @@ int box_size;
 UDP udp;
 int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時間, インスタンス生成のカウント, ヴィジュアライズのカウント
 String IP = "54.65.112.212";
+//String IP = "192.168.33.56";
 int PORT = 20000;
 int mode = 1;
 int total_count = 0;
@@ -103,6 +104,7 @@ void draw(){
   camera(width/2.0, height/2.0, (height/2.0) / tan(PI*60.0 / 360.0) + cam_z, width/2.0, height/2.0, 0, 0, 1, 0);
   lights();
   boolean drawflag = true;
+  PMatrix3D billboardMat;
   ms = millis() - difference;
   String sec = nf(ms/1000.0, 1, 1);
   translate(height/2, height/2);
@@ -122,11 +124,30 @@ void draw(){
   textAlign(CENTER);
   hint(DISABLE_DEPTH_TEST);
   pushMatrix();
+  if(mode >= 3){
+    translate(-box_size/2, 0);
+    billboardMat = (PMatrix3D)g.getMatrix();
+    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+    resetMatrix();
+    applyMatrix(billboardMat);
+    text("CLIENT IP", 0, 0);
+    popMatrix();
+    pushMatrix();
+    translate(box_size/2, 0);
+    billboardMat = (PMatrix3D)g.getMatrix();
+    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+    resetMatrix();
+    applyMatrix(billboardMat);
+    text("SERVER PORT", 0, 0);
+    popMatrix();
+    pushMatrix();
+  }
   translate(0, -height/4, 0);
-  PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+  billboardMat = (PMatrix3D)g.getMatrix();
   billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
   billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
-
   resetMatrix();
   applyMatrix(billboardMat);
   if(mode == 1) text("MODE1: IP, PROTOCOL", 0, -80);
