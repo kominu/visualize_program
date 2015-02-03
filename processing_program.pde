@@ -62,11 +62,11 @@ int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時�
 String IP = "54.65.112.212";
 //String IP = "192.168.33.56";
 int PORT = 20000;
-int mode = 1;
+int mode = 3;
 int total_count = 0;
 
 void setup(){
-  size(1000, 750, OPENGL);
+  size(900, 750, OPENGL);
   colorMode(HSB, 360, 100, 10);
   background(0, 0, 0);
   frameRate(100);
@@ -158,42 +158,46 @@ void draw(){
   if(stopflag) text("Time:"+sec, 0, 0);
   else text("Time:"+nf(tmp_ms/1000.0, 1, 1), 0, 0);
   textAlign(LEFT);
-  if(mode == 1 || mode == 3){
-    fill(300, 69, 9);
-    text("TCP_SYN", height/2, 0);
-    fill(30, 69, 9);
-    text("TCP_SYN/ACK", height/2, 30);
-    fill(180, 69, 9);
-    text("TCP_ACK", height/2, 60);
-    fill(0, 69, 9);
-    text("TCP_RST", height/2, 90);
-    fill(270, 69, 9);
-    text("TCP_FIN", height/2, 120);
-    fill(240, 69, 9);
-    text("TCP_OTHER", height/2, 150);
-    fill(120, 69, 9);
-    text("UDP", height/2, 210);
-    fill(60, 69, 9);
-    text("ICMP", height/2, 270);
+  if(mode == 1 || mode == 3 || mode == 5){
     fill(0, 0, 10);
-    text("OTHERS", height/2, 330);
-  }else if(mode == 2 || mode == 4 || mode == 5){
-    fill(300, 0, 10);
-    text("http", height/2, 0);
-    fill(300, 0, 10);
-    text("https", height/2, 30);
-    fill(0, 69, 9);
-    text("O", height/2, 90);
-    fill(60, 69, 9);
-    text("T", height/2 + 20, 90);
-    fill(120, 69, 9);
-    text("H", height/2 + 40, 90);
-    fill(180, 69, 9);
-    text("E", height/2 + 60, 90);
-    fill(240, 69, 9);
-    text("R", height/2 + 80, 90);
+    text("PROTOCOL", height*0.45, -60);
     fill(300, 69, 9);
-    text("S", height/2 + 100, 90);
+    text("TCP_SYN", height*0.45, 0);
+    fill(30, 69, 9);
+    text("TCP_SYN/ACK", height*0.45, 30);
+    fill(180, 69, 9);
+    text("TCP_ACK", height*0.45, 60);
+    fill(0, 69, 9);
+    text("TCP_RST", height*0.45, 90);
+    fill(270, 69, 9);
+    text("TCP_FIN", height*0.45, 120);
+    fill(240, 69, 9);
+    text("TCP_OTHER", height*0.45, 150);
+    fill(120, 69, 9);
+    text("UDP", height*0.45, 210);
+    fill(60, 69, 9);
+    text("ICMP", height*0.45, 270);
+    fill(0, 0, 10);
+    text("OTHERS", height*0.45, 330);
+  }else if(mode == 2 || mode == 4){
+    fill(0, 0, 10);
+    text("PORT", height*0.45, -60);
+    fill(300, 0, 10);
+    text("http", height*0.45, 0);
+    fill(300, 0, 10);
+    text("https", height*0.45, 30);
+    fill(0, 69, 9);
+    text("O", height*0.45, 90);
+    fill(60, 69, 9);
+    text("T", height*0.45 + 20, 90);
+    fill(120, 69, 9);
+    text("H", height*0.45 + 40, 90);
+    fill(180, 69, 9);
+    text("E", height*0.45 + 60, 90);
+    fill(240, 69, 9);
+    text("R", height*0.45 + 80, 90);
+    fill(300, 69, 9);
+    text("S", height*0.45 + 100, 90);
     fill(0, 0, 10);
   }
   popMatrix();
