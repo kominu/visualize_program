@@ -170,7 +170,7 @@ void draw(){
     fill(270, 69, 9);
     text("TCP_FIN", height/2, 120);
     fill(240, 69, 9);
-    text("TCP_UNKNOWN", height/2, 150);
+    text("TCP_OTHER", height/2, 150);
     fill(120, 69, 9);
     text("UDP", height/2, 210);
     fill(60, 69, 9);
@@ -393,7 +393,7 @@ class Packets {
 
   private boolean visualizePacketFlow(){
     if(alive_flag){
-      if(mode == 1 || mode == 3){
+      if(mode == 1 || mode == 3 || mode == 5){
         if(protocol.equals("TCP")){
           if(tcp_flag.equals("SYN")){
             fill(300, 69, 9, red);
@@ -424,7 +424,7 @@ class Packets {
           fill(360, 0, 10, red);
           stroke(360, 0, 10);
         }
-      }else if(mode == 2 || mode == 4 || mode == 5){
+      }else if(mode == 2 || mode == 4){
         if(my_port == 80 || my_port == 443){
           //http
           fill(300, 0, 10, red);
