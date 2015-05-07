@@ -114,7 +114,8 @@ void draw(){
   stroke(235, 86, 10);
   if(mode != 5){
     box_size = 400;
-    box(box_size);
+    //box(box_size);
+    draw3D();
   }else{
     box_size = 450;
     draw2D();
@@ -632,7 +633,7 @@ class Packets {
 
   private void drawRule(){
        strokeWeight(0.8);
-       line(src_x, src_y, src_z, dst_x, dst_y, dst_z);
+       if(protocol.equals("TCP")) line(src_x, src_y, src_z, dst_x, dst_y, dst_z);
   /*
 
     hint(DISABLE_DEPTH_TEST);
@@ -658,6 +659,7 @@ class Packets {
        text(srv_ip, ip_x, ip_y, ip_z);
      */
   }
+
 
   private boolean cmp_p(String s_ip, int m_port, int s_port){
     if(s_ip.equals(srv_ip) && s_port == srv_port && m_port == my_port){
@@ -734,6 +736,19 @@ void keyReleased(){
   }
 }
 
+void draw3D(){
+  strokeWeight(3.5);
+  stroke(235, 86, 10);
+  line(-box_size/2, -box_size/2, -box_size/2, -box_size/2, box_size/2, -box_size/2);
+  line(-box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2);
+  line(-box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2);
+  line(-box_size/2, -box_size/2, box_size/2, -box_size/2, -box_size/2, -box_size/2);
+
+  line(box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2);
+  line(box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, box_size/2);
+  line(box_size/2, box_size/2, box_size/2, box_size/2, -box_size/2, box_size/2);
+  line(box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2);
+}
 void draw2D(){
   strokeWeight(3.5);
   stroke(235, 86, 10);
