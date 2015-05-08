@@ -251,9 +251,9 @@ void receive(byte[] data, String ip, int port){
 
   cap_data = split(message, ',');
   if(cap_data[8].equals("true")){
-    System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
+    //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
   }else{
-    System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
+    //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
   }
   cap_data[0] = str(total_count);
   total_count++;
@@ -339,6 +339,7 @@ class Packets {
   PFont p_font;
   float rotz, roty;
   int create_time;
+  boolean print_flag;
 
   Packets(String packets[], Node node, PFont font){
     count = Integer.parseInt(packets[0]);
@@ -367,6 +368,7 @@ class Packets {
       red = 255;
     }
     p_font = font;
+    print_flag = true;
 
 
   }
@@ -398,6 +400,11 @@ class Packets {
 
   private boolean visualizePacketFlow(){
     if(alive_flag){
+      if(print_flag){
+        if(protocol.equals("TCP")) System.out.println("\""+protocol+" "+tcp_flag+"\" "+my_ip+"("+my_port+") > "+srv_ip+"("+srv_port+")");
+        else System.out.println("\""+protocol+"\" "+my_ip+"("+my_port+") > "+srv_ip+"("+srv_port+")");
+        print_flag = false;
+      }
       if(mode == 1 || mode == 3 || mode == 5){
         if(protocol.equals("TCP")){
           if(tcp_flag.equals("SYN")){
