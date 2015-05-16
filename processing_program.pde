@@ -1,4 +1,3 @@
-
 /*
  * Processingを用いたcsvファイルの可視化
  * プロセスではなくIPアドレスを通信先として扱う
@@ -44,7 +43,7 @@ String [][] csv;//csvを格納する二次元配列
 Node user;
 PFont myFont;
 PFont myFont2;
-Packets [] packets = new Packets[500000];
+Packets [] packets = new Packets[1000000];
 int packet_count = 0;
 int last_count = 0;//最後に読み込んだパケットのカウント(csv[?][0])
 int push_ms;//一時停止時保存用
@@ -59,11 +58,14 @@ float cam_z;
 int box_size;
 UDP udp;
 int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時間, インスタンス生成のカウント, ヴィジュアライズのカウント
-String IP = "54.65.112.212";
+String IP = "54.65.112.212";//kominu
+String IP2 = "52.68.6.213";//proxy
 //String IP = "192.168.33.56";
 int PORT = 20000;
 int mode = 3;
 int total_count = 0;
+boolean realtime = true;
+boolean receive_flag = false;
 
 void setup(){
   size(900, 750, OPENGL);
@@ -85,10 +87,10 @@ void setup(){
   udp = new UDP(this, 20000);
   udp.listen(true);
 
-  first_passed_time = last_v_num = 0;
+  first_passed_time = last_v_num = difference = 0;
 
   user = new Node(0, 0, 0, box_size/10);
-  if(udp.send("connect request",IP,PORT)){
+  if(udp.send("connect request",IP,PORT) && udp.send("connect request",IP2,PORT)){
     System.out.println("Start visualizing!");
   }else{
     println("cannot connect "+IP+":"+PORT);
@@ -112,7 +114,7 @@ void draw(){
   noFill();
   strokeWeight(3.5);
   stroke(235, 86, 10);
-  if(mode != 5){
+  if(mode != 6){
     box_size = 400;
     //box(box_size);
     draw3D();
@@ -151,15 +153,18 @@ void draw(){
   billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
   resetMatrix();
   applyMatrix(billboardMat);
+  if(realtime) text("Realtime Visualization", 0, -110);
+  else text("Log Visualization", 0, -110);
   if(mode == 1) text("MODE1: IP, PROTOCOL", 0, -80);
   else if(mode == 2) text("MODE2: IP, PORT", 0, -80);
   else if(mode == 3) text("MODE3: IP, PORT(ver2)", 0, -80);
-  else if(mode == 4) text("MODE4: IP, PORT(ver3)", 0, -80);
-  else if(mode == 5) text("MODE5: IP, PORT(2d)", 0, -80);
+  else if(mode == 4) text("MODE4: IP, PORT(ver2-2)", 0, -80);
+  else if(mode == 5) text("MODE5: IP, PORT(ver3)", 0, -80);
+  else if(mode == 6) text("MODE5: IP, PORT(2d)", 0, -80);
   if(stopflag) text("Time:"+sec, 0, 0);
   else text("Time:"+nf(tmp_ms/1000.0, 1, 1), 0, 0);
   textAlign(LEFT);
-  if(mode == 1 || mode == 3 || mode == 5){
+  if(mode == 1 || mode == 3 || mode == 4 || mode == 6){
     fill(0, 0, 10);
     text("PROTOCOL", height*0.45, -60);
     fill(300, 69, 9);
@@ -180,7 +185,7 @@ void draw(){
     text("ICMP", height*0.45, 270);
     fill(0, 0, 10);
     text("OTHERS", height*0.45, 330);
-  }else if(mode == 2 || mode == 4){
+  }else if(mode == 2 || mode == 5){
     fill(0, 0, 10);
     text("PORT", height*0.45, -60);
     fill(300, 0, 10);
@@ -225,6 +230,7 @@ void draw(){
     else if(key == '3') changeMode(3);
     else if(key == '4') changeMode(4);
     else if(key == '5') changeMode(5);
+    else if(key == '6') changeMode(6);
   }
 
   for(int i=last_v_num;i<packet_count;i++){
@@ -233,41 +239,59 @@ void draw(){
     }
     if(packets[i].checkSec()){
       if(packets[i].visualizePacketFlow() == false){
-        if(last_v_num < i) last_v_num = i;
+        if(last_v_num < i) last_v_num = i-1;
       }
+    }else{
+      if(!realtime && mode == 3 && i != 0){
+        if(packets[i].retSec() - packets[i-1].retSec() > 10000){
+          System.out.println("go next");
+          difference = difference - packets[i].retSec() + packets[i-1].retSec();
+          //ms += packets[i].retSec() - packets[i-1].retSec();
+        }
+      }
+      break;
     }
-    else break;
   }
   if(mode == 1) user.drawNode();
   else if(mode == 2) user.drawNode();
+  if(!receive_flag) receive_flag = true;
 }
 
 void receive(byte[] data, String ip, int port){
-  String [] cap_data = new String[10]; 
-  data = subset(data, 0, data.length);
-  String message = new String(data);
+  if(receive_flag){
+    String [] cap_data = new String[10]; 
+    data = subset(data, 0, data.length);
+    String message = new String(data);
 
-  //println(message);
+    //println(message);
+    if(message.equals("offline")) realtime = false;
+    else{
+      cap_data = split(message, ',');
+      if(cap_data[8].equals("true")){
+        //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
+      }else{
+        //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
+      }
+      cap_data[0] = str(total_count);
+      total_count++;
 
-  cap_data = split(message, ',');
-  if(cap_data[8].equals("true")){
-    //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
-  }else{
-    //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
-  }
-  cap_data[0] = str(total_count);
-  total_count++;
+      if(total_count >= 1000000){
+        packet_count = 0;
+        last_v_num = 0;
+      }
 
-  if(packet_count != 0){
-    //if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
-    packets[packet_count] = new Packets(cap_data, user, myFont);
-    packet_count++;
-    //}
-  }else{
-    first_passed_time = Integer.parseInt(cap_data[7]);
-    packets[packet_count] = new Packets(cap_data, user, myFont);
-    packet_count++;
-    difference += millis();
+      if(total_count > 1){
+        //if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
+        packets[packet_count] = new Packets(cap_data, user, myFont);
+        packet_count++;
+        //}
+      }else{
+        first_passed_time = Integer.parseInt(cap_data[7]);
+        packets[packet_count] = new Packets(cap_data, user, myFont);
+        packet_count++;
+        difference = millis();
+      }
+    }
   }
 }
 
@@ -317,9 +341,9 @@ class Packets {
   String protocol;
   int bytes;
   String my_ip;
-  String srv_ip;
+  String src_ip;
   int my_port;
-  int srv_port;
+  int src_port;
   int pass_time;
   String addr_name;
   boolean trans_flag;
@@ -346,9 +370,9 @@ class Packets {
     protocol = packets[1];
     bytes = Integer.parseInt(packets[2]);
     my_ip = packets[3];
-    srv_ip = packets[4];
+    src_ip = packets[4];
     my_port = Integer.parseInt(packets[5]);
-    srv_port = Integer.parseInt(packets[6]);
+    src_port = Integer.parseInt(packets[6]);
     pass_time = Integer.parseInt(packets[7]) - first_passed_time;//最初に送られてきたパケットとの差
     //addr_name = packets[8];
     trans_flag = Boolean.valueOf(packets[8]);
@@ -358,8 +382,8 @@ class Packets {
     node_y = node.y;
     node_z = node.z;
     if(mode == 1 || mode == 2) mode1();
-    else if(mode == 3 || mode == 4) mode3();
-    else if(mode == 5) mode3();
+    else if(mode == 3 || mode == 4 || mode == 5) mode3();
+    else if(mode == 6) mode3();
     p_size = box_size/50;
     alive_flag = true;
     create_time = millis();
@@ -378,7 +402,7 @@ class Packets {
      int time_now = Integer.parseInt(time) - first_passed_time;
      int time_pre = pass_time;
      boolean flag2 = Boolean.valueOf(flag); 
-     if(ip.equals(srv_ip) && port.equals(srv_port) && trans_flag == flag2 &&  time_pre +50 > time_now){
+     if(ip.equals(src_ip) && port.equals(src_port) && trans_flag == flag2 &&  time_pre +50 > time_now){
      println("cut\n\n\n\n");
      return false;
      }else{
@@ -398,14 +422,18 @@ class Packets {
     }
   } 
 
+  private int retSec(){
+    return pass_time;
+  }
+
   private boolean visualizePacketFlow(){
     if(alive_flag){
       if(print_flag){
-        if(protocol.equals("TCP")) System.out.println("\""+protocol+" "+tcp_flag+"\" "+my_ip+"("+my_port+") > "+srv_ip+"("+srv_port+")");
-        else System.out.println("\""+protocol+"\" "+my_ip+"("+my_port+") > "+srv_ip+"("+srv_port+")");
+        if(protocol.equals("TCP")) System.out.println("\""+protocol+" "+tcp_flag+"\" "+my_ip+"("+my_port+") > "+src_ip+"("+src_port+")");
+        else System.out.println("\""+protocol+"\" "+my_ip+"("+my_port+") > "+src_ip+"("+src_port+")");
         print_flag = false;
       }
-      if(mode == 1 || mode == 3 || mode == 5){
+      if(mode == 1 || mode == 3 || mode == 4 || mode == 6){
         if(protocol.equals("TCP")){
           if(tcp_flag.equals("SYN")){
             fill(300, 69, 9, red);
@@ -436,7 +464,7 @@ class Packets {
           fill(360, 0, 10, red);
           stroke(360, 0, 10);
         }
-      }else if(mode == 2 || mode == 4){
+      }else if(mode == 2 || mode == 5){
         if(my_port == 80 || my_port == 443){
           //http
           fill(300, 0, 10, red);
@@ -452,8 +480,10 @@ class Packets {
 
       //line(0, 0, 0, ip_x, ip_y, ip_z);
       noFill();
-      drawRule();
+      //drawRule();
       drawPrism();
+      drawText();
+
 
       if(stopflag){
         x = x + f_x;
@@ -468,8 +498,58 @@ class Packets {
       }
       return true;
     }else{
+      if(!realtime && count == total_count-1){
+        System.out.println("finish visualizing log file");
+        exit();
+      }
       return false;
     }
+  }
+
+  private void drawText(){
+    if(!trans_flag){
+      text(src_ip, src_x, src_y, src_z);
+      text(str(my_port), dst_x, dst_y, dst_z);
+    }else{ 
+      text(str(my_port), src_x, src_y, src_z);
+      text(src_ip, dst_x, dst_y, dst_z);
+    }
+    /* billboardは重すぎる
+    hint(DISABLE_DEPTH_TEST);
+    pushMatrix();
+    translate(src_x, src_y, src_z);
+    PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+    resetMatrix();
+    applyMatrix(billboardMat);
+    if(!trans_flag){
+      text(src_ip, 0, 0, 0);
+    }else{ 
+      text(str(my_port), 0, 0, 0);
+    }
+    popMatrix();
+    hint(ENABLE_DEPTH_TEST);
+
+
+    hint(DISABLE_DEPTH_TEST);
+    pushMatrix();
+    translate(dst_x, dst_y, dst_z);
+    PMatrix3D billboardMat2 = (PMatrix3D)g.getMatrix();
+    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+    resetMatrix();
+    applyMatrix(billboardMat);
+    if(trans_flag){
+      text(str(my_port), 0, 0, 0);
+    }else{ 
+      text(src_ip, 0, 0, 0);
+    }
+    popMatrix();
+    hint(ENABLE_DEPTH_TEST);
+    */
   }
 
   private void killFlag(){
@@ -586,12 +666,13 @@ class Packets {
     f_x = (dst_x - x)/float(life);
     f_y = (dst_y - y)/float(life);
     f_z = (dst_z - z)/float(life);
+
   }
 
 
   private void set_ip_xyz(){
     int [] div_addr;
-    div_addr = int(split(srv_ip, "."));
+    div_addr = int(split(src_ip, "."));
     if(mode == 1 || mode == 2){
       if(div_addr[0] <= 63){
         ip_x = -box_size/2 + (div_addr[0]%8)*box_size/8 + (div_addr[2])*box_size/2048;
@@ -614,12 +695,12 @@ class Packets {
         ip_z = -box_size/2 + (div_addr[0]%8)*box_size/8 + (div_addr[2])*box_size/2048;
         lo_state = 3;
       }
-    }else if(mode == 3 || mode == 4){
+    }else if(mode == 3 || mode == 4 || mode == 5){
       ip_x = -box_size/2;
       ip_y = -box_size/2 + div_addr[0] * box_size / 256;
       ip_z = -box_size/2 + div_addr[1] * box_size / 256;
     }
-    else if(mode == 5){
+    else if(mode == 6){
       ip_x = -box_size/2;
       ip_y = -box_size/2 + div_addr[0] * div_addr[1] * box_size / 65535;
       ip_z = 0;
@@ -627,11 +708,11 @@ class Packets {
   }
 
   private void set_port_xyz(){
-    if(mode == 3 || mode == 4){
+    if(mode == 3 || mode == 4 || mode == 5){
       port_x = box_size/2;
       port_y = -box_size/2 + (my_port / 256) * box_size / 256;
       port_z = -box_size/2 + (my_port % 256) * box_size / 256;
-    }else if(mode == 5){
+    }else if(mode == 6){
       port_x = box_size/2;
       port_y = -box_size/2 + my_port * box_size / 65535;
       port_z = 0;
@@ -655,7 +736,7 @@ class Packets {
     fill(360, 0, 10);
     textFont(p_font, 20);
     textAlign(CENTER);
-    text(srv_ip, 0, 0, 0);
+    text(src_ip, 0, 0, 0);
     popMatrix();
     hint(ENABLE_DEPTH_TEST);
 
@@ -663,13 +744,13 @@ class Packets {
        fill(255);
        textFont(p_font);
        textAlign(CENTER);
-       text(srv_ip, ip_x, ip_y, ip_z);
+       text(src_ip, ip_x, ip_y, ip_z);
      */
   }
 
 
   private boolean cmp_p(String s_ip, int m_port, int s_port){
-    if(s_ip.equals(srv_ip) && s_port == srv_port && m_port == my_port){
+    if(s_ip.equals(src_ip) && s_port == src_port && m_port == my_port){
       return true;
     }else return false;
   }
@@ -679,7 +760,7 @@ class Packets {
 
     /*
     if(count != 0 && tcp_flag.equals("ACK")){
-      if(packets[count - 1].cmp_p(srv_ip, my_port, srv_port)){
+      if(packets[count - 1].cmp_p(src_ip, my_port, src_port)){
         if(packets[count - 1].alive_flag){
           if(packets[count - 1].tcp_flag.equals("ACK")){
             status = 1;
@@ -738,7 +819,8 @@ void keyReleased(){
     }else{
       stopflag = true;
       pop_ms = millis();
-      difference += pop_ms - push_ms;
+      if(realtime && mode == 3) System.out.println("don't fix time difference");
+      else difference += pop_ms - push_ms;
     }
   }
 }
@@ -781,9 +863,9 @@ void changeMode(int num){
     }
     */
     if(packets[i].alive_flag){
-      if(mode == 3 || mode == 4) packets[i].mode3();
+      if(mode == 3 || mode == 4 || mode == 5) packets[i].mode3();
       else if(mode == 1 || mode == 2) packets[i].mode1();
-      else if(mode == 5) packets[i].mode3();
+      else if(mode == 6) packets[i].mode3();
     }
   }
 }
