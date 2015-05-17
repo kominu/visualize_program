@@ -84,7 +84,7 @@ void setup(){
   cam_z = 0;
   box_size = 400;
 
-  udp = new UDP(this, 20000);
+  udp = new UDP(this, 30000);
   udp.listen(true);
 
   first_passed_time = last_v_num = difference = 0;
@@ -216,8 +216,11 @@ void draw(){
      }
    */
 
-
-
+  if(ms % 60000 > 0 && ms % 60000 < 60){
+    if(udp.send("connect request",IP,PORT) && udp.send("connect request",IP2,PORT)){
+      System.out.println("send udp");
+    }
+  }
 
   if(keyPressed){
     if(keyCode == LEFT) rot = rot - 0.02;
