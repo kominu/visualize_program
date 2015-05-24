@@ -59,8 +59,9 @@ int box_size;
 UDP udp;
 int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時間, インスタンス生成のカウント, ヴィジュアライズのカウント
 String IP = "54.65.112.212";//kominu
-String IP2 = "52.68.6.213";//proxy
+//String IP2 = "52.68.6.213";//proxy
 //String IP = "192.168.33.56";
+String IP2 = "133.27.67.89";
 int PORT = 20000;
 int mode = 3;
 int total_count = 0;
