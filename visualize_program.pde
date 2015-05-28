@@ -51,6 +51,7 @@ int pop_ms;//一時停止解除時
 int tmp_ms;//一時停止時表示用
 int ms;
 int difference;
+int now_v_count;
 boolean stopflag = true;
 float rot = 0;
 int draw_size;
@@ -433,6 +434,7 @@ class Packets {
   private boolean visualizePacketFlow(){
     if(alive_flag){
       if(print_flag){
+        now_v_count++;
         if(protocol.equals("TCP")) System.out.println("\""+protocol+" "+tcp_flag+"\" "+my_ip+"("+my_port+") > "+src_ip+"("+src_port+")");
         else System.out.println("\""+protocol+"\" "+my_ip+"("+my_port+") > "+src_ip+"("+src_port+")");
         print_flag = false;
@@ -487,6 +489,7 @@ class Packets {
       //drawRule();
       drawPrism();
       drawText();
+      System.out.println(now_v_count);
 
 
       if(stopflag){
@@ -494,6 +497,7 @@ class Packets {
         y = y + f_y;
         z = z + f_z;
         if(life <= 0){
+          now_v_count--;
           alive_flag = false;
         }
         life--;
@@ -511,49 +515,53 @@ class Packets {
   }
 
   private void drawText(){
-    if(!trans_flag){
-      text(src_ip, src_x, src_y, src_z);
-      text(str(my_port), dst_x, dst_y, dst_z);
-    }else{ 
-      text(str(my_port), src_x, src_y, src_z);
-      text(src_ip, dst_x, dst_y, dst_z);
+    if(now_v_count < 150){
+      if(!trans_flag){
+        text(src_ip, src_x, src_y, src_z);
+        text(str(my_port), dst_x, dst_y, dst_z);
+      }else{ 
+        text(str(my_port), src_x, src_y, src_z);
+        text(src_ip, dst_x, dst_y, dst_z);
+      }
+      /* 目がチカチカする
+      if(now_v_count < 50){
+        hint(DISABLE_DEPTH_TEST);
+        pushMatrix();
+        translate(src_x, src_y, src_z);
+        PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+        billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+        billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+        resetMatrix();
+        applyMatrix(billboardMat);
+        if(!trans_flag){
+          text(src_ip, 0, 0, 0);
+        }else{ 
+          text(str(my_port), 0, 0, 0);
+        }
+        popMatrix();
+        hint(ENABLE_DEPTH_TEST);
+
+
+        hint(DISABLE_DEPTH_TEST);
+        pushMatrix();
+        translate(dst_x, dst_y, dst_z);
+        PMatrix3D billboardMat2 = (PMatrix3D)g.getMatrix();
+        billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+        billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+        resetMatrix();
+        applyMatrix(billboardMat);
+        if(trans_flag){
+          text(str(my_port), 0, 0, 0);
+        }else{ 
+          text(src_ip, 0, 0, 0);
+        }
+        popMatrix();
+        hint(ENABLE_DEPTH_TEST);
+      }
+      */
     }
-    /* billboardは重すぎる
-    hint(DISABLE_DEPTH_TEST);
-    pushMatrix();
-    translate(src_x, src_y, src_z);
-    PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
-    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
-    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
-
-    resetMatrix();
-    applyMatrix(billboardMat);
-    if(!trans_flag){
-      text(src_ip, 0, 0, 0);
-    }else{ 
-      text(str(my_port), 0, 0, 0);
-    }
-    popMatrix();
-    hint(ENABLE_DEPTH_TEST);
-
-
-    hint(DISABLE_DEPTH_TEST);
-    pushMatrix();
-    translate(dst_x, dst_y, dst_z);
-    PMatrix3D billboardMat2 = (PMatrix3D)g.getMatrix();
-    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
-    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
-
-    resetMatrix();
-    applyMatrix(billboardMat);
-    if(trans_flag){
-      text(str(my_port), 0, 0, 0);
-    }else{ 
-      text(src_ip, 0, 0, 0);
-    }
-    popMatrix();
-    hint(ENABLE_DEPTH_TEST);
-    */
   }
 
   private void killFlag(){
@@ -724,31 +732,31 @@ class Packets {
   }
 
   private void drawRule(){
-       strokeWeight(0.8);
-       if(protocol.equals("TCP")) line(src_x, src_y, src_z, dst_x, dst_y, dst_z);
-  /*
+    strokeWeight(0.8);
+    if(protocol.equals("TCP")) line(src_x, src_y, src_z, dst_x, dst_y, dst_z);
+    /*
 
-    hint(DISABLE_DEPTH_TEST);
-    pushMatrix();
-    translate(ip_x, ip_y, ip_z);
-    PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
-    billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
-    billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+       hint(DISABLE_DEPTH_TEST);
+       pushMatrix();
+       translate(ip_x, ip_y, ip_z);
+       PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+       billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+       billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
 
-    resetMatrix();
-    applyMatrix(billboardMat);
-    fill(360, 0, 10);
-    textFont(p_font, 20);
-    textAlign(CENTER);
-    text(src_ip, 0, 0, 0);
-    popMatrix();
-    hint(ENABLE_DEPTH_TEST);
+       resetMatrix();
+       applyMatrix(billboardMat);
+       fill(360, 0, 10);
+       textFont(p_font, 20);
+       textAlign(CENTER);
+       text(src_ip, 0, 0, 0);
+       popMatrix();
+       hint(ENABLE_DEPTH_TEST);
 
     /*
-       fill(255);
-       textFont(p_font);
-       textAlign(CENTER);
-       text(src_ip, ip_x, ip_y, ip_z);
+    fill(255);
+    textFont(p_font);
+    textAlign(CENTER);
+    text(src_ip, ip_x, ip_y, ip_z);
      */
   }
 
@@ -763,16 +771,16 @@ class Packets {
     int status = 0;
 
     /*
-    if(count != 0 && tcp_flag.equals("ACK")){
-      if(packets[count - 1].cmp_p(src_ip, my_port, src_port)){
-        if(packets[count - 1].alive_flag){
-          if(packets[count - 1].tcp_flag.equals("ACK")){
-            status = 1;
-          }
-        }
-      }
-    }
-    */
+       if(count != 0 && tcp_flag.equals("ACK")){
+       if(packets[count - 1].cmp_p(src_ip, my_port, src_port)){
+       if(packets[count - 1].alive_flag){
+       if(packets[count - 1].tcp_flag.equals("ACK")){
+       status = 1;
+       }
+       }
+       }
+       }
+     */
     if(status == 1){
       strokeWeight(0.8);
       line(x, y, z, packets[count -1].x, packets[count -1].y, packets[count -1].z);
@@ -862,10 +870,10 @@ void changeMode(int num){
   for(int i=last_v_num;i<packet_count;i++){
     if(packets[i] == null) break;
     /*
-    if(packets[i].checkSec()){
-      packets[i].killFlag();
-    }
-    */
+       if(packets[i].checkSec()){
+       packets[i].killFlag();
+       }
+     */
     if(packets[i].alive_flag){
       if(mode == 3 || mode == 4 || mode == 5) packets[i].mode3();
       else if(mode == 1 || mode == 2) packets[i].mode1();
