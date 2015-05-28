@@ -513,6 +513,7 @@ class Packets {
 
   private void drawText(){
     if(now_v_count < 150){
+      textSize(box_size/25);
       if(!trans_flag){
         text(src_ip, src_x, src_y, src_z);
         text(str(my_port), dst_x, dst_y, dst_z);
