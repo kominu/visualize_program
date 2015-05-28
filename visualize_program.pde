@@ -84,7 +84,7 @@ void setup(){
   textFont(myFont);
   rot = 0;
   cam_z = 0;
-  box_size = displayHeight/2;
+  box_size = displayHeight*2/5;
 
   udp = new UDP(this, 30000);
   udp.listen(true);
