@@ -62,7 +62,8 @@ int first_passed_time, last_v_num;//１つ目のパケットの持つ経過時�
 String IP = "54.65.112.212";//kominu
 //String IP2 = "52.68.6.213";//proxy
 //String IP = "192.168.33.56";
-String IP2 = "133.27.67.89";
+//String IP2 = "133.27.67.89";
+String IP2 = "133.27.67.42";
 int PORT = 20000;
 int mode = 3;
 int total_count = 0;
@@ -516,12 +517,14 @@ class Packets {
   }
 
   private void drawText(){
+    if(now_v_count < 300){
+    textSize(text_standard);
       if(!trans_flag){
         text(str(my_port), dst_x, dst_y, dst_z);
       }else{ 
         text(str(my_port), src_x, src_y, src_z);
       }
-    if(now_v_count < 150){
+    }else if(now_v_count < 200){
       textSize(box_size/25);
       if(!trans_flag){
         text(src_ip, src_x, src_y, src_z);
