@@ -524,7 +524,8 @@ class Packets {
       }else{ 
         text(str(my_port), src_x, src_y, src_z);
       }
-    }else if(now_v_count < 200){
+    }
+    if(now_v_count < 200){
       textSize(box_size/25);
       if(!trans_flag){
         text(src_ip, src_x, src_y, src_z);
