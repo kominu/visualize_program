@@ -85,7 +85,7 @@ void setup(){
   textFont(myFont);
   rot = 0;
   cam_z = 0;
-  box_size = displayHeight*2/5;
+  box_size = displayHeight/2;
 
   udp = new UDP(this, 30000);
   udp.listen(true);
@@ -112,7 +112,7 @@ void draw(){
   PMatrix3D billboardMat;
   ms = millis() - difference;
   String sec = nf(ms/1000.0, 1, 1);
-  translate(height/2, height/2);
+  translate(width*2/5, height/2);
   rotateY(rot);
   noFill();
   strokeWeight(3.5);
