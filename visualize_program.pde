@@ -70,7 +70,7 @@ boolean realtime = true;
 boolean receive_flag = false;
 
 void setup(){
-  size(displayWidth*4/5, displayHeight, OPENGL);
+  size(displayWidth*4/5, displayHeight*9/10, OPENGL);
   colorMode(HSB, 360, 100, 10);
   background(0, 0, 0);
   frameRate(100);
