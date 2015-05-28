@@ -516,13 +516,16 @@ class Packets {
   }
 
   private void drawText(){
+      if(!trans_flag){
+        text(str(my_port), dst_x, dst_y, dst_z);
+      }else{ 
+        text(str(my_port), src_x, src_y, src_z);
+      }
     if(now_v_count < 150){
       textSize(box_size/25);
       if(!trans_flag){
         text(src_ip, src_x, src_y, src_z);
-        text(str(my_port), dst_x, dst_y, dst_z);
       }else{ 
-        text(str(my_port), src_x, src_y, src_z);
         text(src_ip, dst_x, dst_y, dst_z);
       }
       /* 目がチカチカする
