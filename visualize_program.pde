@@ -70,7 +70,7 @@ boolean realtime = true;
 boolean receive_flag = false;
 
 void setup(){
-  size(900, 750, OPENGL);
+  size(displayWidth*4/5, displayHeight, OPENGL);
   colorMode(HSB, 360, 100, 10);
   background(0, 0, 0);
   frameRate(100);
@@ -84,7 +84,7 @@ void setup(){
   textFont(myFont);
   rot = 0;
   cam_z = 0;
-  box_size = 400;
+  box_size = displayHeight/2;
 
   udp = new UDP(this, 30000);
   udp.listen(true);
@@ -117,11 +117,8 @@ void draw(){
   strokeWeight(3.5);
   stroke(235, 86, 10);
   if(mode != 6){
-    box_size = 400;
-    //box(box_size);
     draw3D();
   }else{
-    box_size = 450;
     draw2D();
   }
   textFont(myFont);
