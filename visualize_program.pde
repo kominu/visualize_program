@@ -496,7 +496,6 @@ class Packets {
       //drawRule();
       drawPrism();
       drawText();
-      System.out.println(now_v_count);
 
 
       if(stopflag){
@@ -784,56 +783,47 @@ class Packets {
   }
 
   private void drawPrism(){
-    int status = 0;
+    if(now_v_count <= 400 || int(random(5)) >= 1){
+        int status = 0;
 
-    /*
-       if(count != 0 && tcp_flag.equals("ACK")){
-       if(packets[count - 1].cmp_p(src_ip, my_port, src_port)){
-       if(packets[count - 1].alive_flag){
-       if(packets[count - 1].tcp_flag.equals("ACK")){
-       status = 1;
-       }
-       }
-       }
-       }
-     */
-    if(status == 1){
-      strokeWeight(0.8);
-      line(x, y, z, packets[count -1].x, packets[count -1].y, packets[count -1].z);
-    }else{
-      strokeWeight(3);
-      float size = p_size;
-      if(trans_flag){
-        size = -size;
-      }
-      pushMatrix();
-      translate(x, y, z);
-      rotateY(roty);
-      rotateZ(rotz);
-      beginShape();
-      vertex(0, -size, 0);
-      vertex(-size/2, size, -size/2);
-      vertex(size/2, size, -size/2);
-      endShape(CLOSE);
+        if(status == 1){
+        strokeWeight(0.8);
+        line(x, y, z, packets[count -1].x, packets[count -1].y, packets[count -1].z);
+        }else{
+        strokeWeight(3);
+        float size = p_size;
+        if(trans_flag){
+          size = -size;
+        }
+        pushMatrix();
+        translate(x, y, z);
+        rotateY(roty);
+        rotateZ(rotz);
+        beginShape();
+        vertex(0, -size, 0);
+        vertex(-size/2, size, -size/2);
+        vertex(size/2, size, -size/2);
+        endShape(CLOSE);
 
-      beginShape();
-      vertex(0, -size, 0);
-      vertex(-size/2, size, -size/2);
-      vertex(-size/2, size, size/2);
-      endShape(CLOSE);
+        beginShape();
+        vertex(0, -size, 0);
+        vertex(-size/2, size, -size/2);
+        vertex(-size/2, size, size/2);
+        endShape(CLOSE);
 
-      beginShape();
-      vertex(0, -size, 0);
-      vertex(size/2, size, size/2);
-      vertex(size/2, size, -size/2);
-      endShape(CLOSE);
+        beginShape();
+        vertex(0, -size, 0);
+        vertex(size/2, size, size/2);
+        vertex(size/2, size, -size/2);
+        endShape(CLOSE);
 
-      beginShape();
-      vertex(0, -size, 0);
-      vertex(-size/2, size, size/2);
-      vertex(size/2, size, size/2);
-      endShape(CLOSE);
-      popMatrix();
+        beginShape();
+        vertex(0, -size, 0);
+        vertex(-size/2, size, size/2);
+        vertex(size/2, size, size/2);
+        endShape(CLOSE);
+        popMatrix();
+        }
     }
   }
 }
