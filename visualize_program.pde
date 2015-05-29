@@ -53,7 +53,8 @@ int ms;
 int difference;
 int now_v_count;
 boolean stopflag = true;
-float rot = 0;
+float rot_x = 0;
+float rot_y = 0;
 int draw_size;
 float cam_z;
 int box_size;
@@ -84,7 +85,8 @@ void setup(){
   myFont = loadFont("HelveticaNeue-Italic-24.vlw");
   myFont2 = loadFont("Monaco-20.vlw");
   textFont(myFont);
-  rot = 0;
+  rot_x = 0;
+  rot_y = 0;
   cam_z = 0;
   box_size = displayHeight/2;
 
@@ -114,7 +116,8 @@ void draw(){
   ms = millis() - difference;
   String sec = nf(ms/1000.0, 1, 1);
   translate(width*2/5, height/2);
-  rotateY(rot);
+  rotateY(rot_y);
+  rotateX(rot_x);
   noFill();
   strokeWeight(3.5);
   stroke(235, 86, 10);
@@ -227,10 +230,12 @@ void draw(){
   }
 
   if(keyPressed){
-    if(keyCode == LEFT) rot = rot - 0.02;
-    else if(keyCode == RIGHT) rot = rot + 0.02;
-    else if(keyCode == DOWN) cam_z = cam_z + 5;
-    else if(keyCode == UP) cam_z = cam_z - 5;
+    if(keyCode == LEFT) rot_y = rot_y - 0.02;
+    else if(keyCode == RIGHT) rot_y = rot_y + 0.02;
+    //else if(keyCode == DOWN) cam_z = cam_z + 5;
+    //else if(keyCode == UP) cam_z = cam_z - 5;
+    else if(keyCode == DOWN) rot_x = rot_x + 0.02;
+    else if(keyCode == UP) rot_x = rot_x - 0.02;
     else if(key == ENTER) exit();
     else if(key == '1') changeMode(1);
     else if(key == '2') changeMode(2);
@@ -526,11 +531,13 @@ class Packets {
       }
     }
     if(now_v_count < 200){
+      String ip_text;
+      ip_text = src_ip + "(" + str(src_port) + ")";
       textSize(box_size/25);
       if(!trans_flag){
-        text(src_ip, src_x, src_y, src_z);
+        text(ip_text, src_x, src_y, src_z);
       }else{ 
-        text(src_ip, dst_x, dst_y, dst_z);
+        text(ip_text, dst_x, dst_y, dst_z);
       }
       /* 目がチカチカする
       if(now_v_count < 50){
