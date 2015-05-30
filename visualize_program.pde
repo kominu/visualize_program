@@ -522,24 +522,22 @@ class Packets {
 
   private void drawText(){
     if(now_v_count < 300){
-    textSize(text_standard);
+      textSize(text_standard*4/5);
       if(!trans_flag){
-        text(str(my_port), dst_x, dst_y, dst_z);
+        hint(DISABLE_DEPTH_TEST);
+        pushMatrix();
+        translate(dst_x, dst_y, dst_z);
+        PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+        billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+        billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+        resetMatrix();
+        applyMatrix(billboardMat);
+        text(str(my_port), 0, 0, 0);
+        //text(str(my_port), dst_x, dst_y, dst_z);
+        popMatrix();
+        hint(ENABLE_DEPTH_TEST);
       }else{ 
-        text(str(my_port), src_x, src_y, src_z);
-      }
-    }
-    if(now_v_count < 200){
-      String ip_text;
-      ip_text = src_ip + "(" + str(src_port) + ")";
-      textSize(box_size/25);
-      if(!trans_flag){
-        text(ip_text, src_x, src_y, src_z);
-      }else{ 
-        text(ip_text, dst_x, dst_y, dst_z);
-      }
-      /* 目がチカチカする
-      if(now_v_count < 50){
         hint(DISABLE_DEPTH_TEST);
         pushMatrix();
         translate(src_x, src_y, src_z);
@@ -549,33 +547,83 @@ class Packets {
 
         resetMatrix();
         applyMatrix(billboardMat);
-        if(!trans_flag){
-          text(src_ip, 0, 0, 0);
-        }else{ 
-          text(str(my_port), 0, 0, 0);
-        }
+        text(str(my_port), 0, 0, 0);
+        //text(str(my_port), src_x, src_y, src_z);
         popMatrix();
         hint(ENABLE_DEPTH_TEST);
-
-
+      }
+    }
+    if(now_v_count < 200){
+      textSize(text_standard*2/3);
+      String ip_text;
+      ip_text = src_ip + "(" + str(src_port) + ")";
+      if(!trans_flag){
         hint(DISABLE_DEPTH_TEST);
         pushMatrix();
-        translate(dst_x, dst_y, dst_z);
-        PMatrix3D billboardMat2 = (PMatrix3D)g.getMatrix();
+        translate(src_x, src_y, src_z);
+        PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
         billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
         billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
 
         resetMatrix();
         applyMatrix(billboardMat);
-        if(trans_flag){
-          text(str(my_port), 0, 0, 0);
-        }else{ 
-          text(src_ip, 0, 0, 0);
-        }
+        text(ip_text, 0, 0, 0);
+        //text(ip_text, src_x, src_y, src_z);
+        popMatrix();
+        hint(ENABLE_DEPTH_TEST);
+      }else{ 
+        hint(DISABLE_DEPTH_TEST);
+        pushMatrix();
+        translate(dst_x, dst_y, dst_z);
+        PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+        billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+        billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+        resetMatrix();
+        applyMatrix(billboardMat);
+        text(ip_text, 0, 0, 0);
+        //text(ip_text, dst_x, dst_y, dst_z);
         popMatrix();
         hint(ENABLE_DEPTH_TEST);
       }
-      */
+      /* 目がチカチカする
+         if(now_v_count < 50){
+         hint(DISABLE_DEPTH_TEST);
+         pushMatrix();
+         translate(src_x, src_y, src_z);
+         PMatrix3D billboardMat = (PMatrix3D)g.getMatrix();
+         billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+         billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+         resetMatrix();
+         applyMatrix(billboardMat);
+         if(!trans_flag){
+         text(src_ip, 0, 0, 0);
+         }else{ 
+         text(str(my_port), 0, 0, 0);
+         }
+         popMatrix();
+         hint(ENABLE_DEPTH_TEST);
+
+
+         hint(DISABLE_DEPTH_TEST);
+         pushMatrix();
+         translate(dst_x, dst_y, dst_z);
+         PMatrix3D billboardMat2 = (PMatrix3D)g.getMatrix();
+         billboardMat.m00 = billboardMat.m11 = billboardMat.m22 = 1;
+         billboardMat.m01 = billboardMat.m02 = billboardMat.m10 = billboardMat.m12 = billboardMat.m20 = billboardMat.m21 = 0;
+
+         resetMatrix();
+         applyMatrix(billboardMat);
+         if(trans_flag){
+         text(str(my_port), 0, 0, 0);
+         }else{ 
+         text(src_ip, 0, 0, 0);
+         }
+         popMatrix();
+         hint(ENABLE_DEPTH_TEST);
+         }
+       */
     }
   }
 
@@ -783,13 +831,14 @@ class Packets {
   }
 
   private void drawPrism(){
-    if(now_v_count <= 400 || int(random(5)) >= 1){
-        int status = 0;
+    if(now_v_count > 400 && int(random(5)) == 1){
+    }else{
+      int status = 0;
 
-        if(status == 1){
+      if(status == 1){
         strokeWeight(0.8);
         line(x, y, z, packets[count -1].x, packets[count -1].y, packets[count -1].z);
-        }else{
+      }else{
         strokeWeight(3);
         float size = p_size;
         if(trans_flag){
@@ -823,7 +872,7 @@ class Packets {
         vertex(size/2, size, size/2);
         endShape(CLOSE);
         popMatrix();
-        }
+      }
     }
   }
 }
@@ -844,8 +893,8 @@ void keyReleased(){
 }
 
 void draw3D(){
-  strokeWeight(3.5);
-  stroke(235, 86, 10);
+  strokeWeight(1.5);
+  stroke(200, 90, 9);
   line(-box_size/2, -box_size/2, -box_size/2, -box_size/2, box_size/2, -box_size/2);
   line(-box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2);
   line(-box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2);
@@ -855,6 +904,14 @@ void draw3D(){
   line(box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, box_size/2);
   line(box_size/2, box_size/2, box_size/2, box_size/2, -box_size/2, box_size/2);
   line(box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2);
+
+
+  stroke(138, 75, 9);
+  line(-box_size/2, -box_size/2, -box_size/2, box_size/2, -box_size/2, -box_size/2);
+  line(-box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2);
+  line(-box_size/2, box_size/2, box_size/2, box_size/2, box_size/2, box_size/2);
+  line(-box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2, box_size/2);
+
 }
 void draw2D(){
   strokeWeight(3.5);
