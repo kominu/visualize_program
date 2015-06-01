@@ -21,6 +21,7 @@
 
 import processing.opengl.*;
 import hypermedia.net.*;
+import java.util.Map;
 
 int row_length;//配列の長さ
 int max_time;//キャプチャ経過時間の最大値
@@ -71,6 +72,8 @@ int total_count = 0;
 boolean realtime = true;
 boolean receive_flag = false;
 int text_standard, text_s_height;
+int max_ip_count;
+HashMap<String, Integer> ip_map = new HashMap<String, Integer>();
 
 void setup(){
   size(displayWidth*4/5, displayHeight*9/10, OPENGL);
@@ -107,7 +110,6 @@ void setup(){
 
 
 void draw(){
-
   background(245, 85, 1);
   camera(width/2.0, height/2.0, (height/2.0) / tan(PI*60.0 / 360.0) + cam_z, width/2.0, height/2.0, 0, 0, 1, 0);
   lights();
@@ -279,29 +281,33 @@ void receive(byte[] data, String ip, int port){
     if(message.equals("offline")) realtime = false;
     else{
       cap_data = split(message, ',');
-      if(cap_data[8].equals("true")){
-        //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
+      if(cap_data[0].equals("max")){
+        max_ip_count = Integer.parseInt(cap_data[1]);
       }else{
-        //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
-      }
-      cap_data[0] = str(total_count);
-      total_count++;
+        if(cap_data[8].equals("true")){
+          //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[3]+"("+cap_data[5]+") > "+cap_data[4]+"("+cap_data[6]+")");
+        }else{
+          //System.out.println("\""+cap_data[1]+" "+cap_data[9]+"\" "+cap_data[4]+"("+cap_data[6]+") > "+cap_data[3]+"("+cap_data[5]+")");
+        }
+        cap_data[0] = str(total_count);
+        total_count++;
 
-      if(total_count >= 1000000){
-        packet_count = 0;
-        last_v_num = 0;
-      }
+        if(total_count >= 1000000){
+          packet_count = 0;
+          last_v_num = 0;
+        }
 
-      if(total_count > 1){
-        //if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
-        packets[packet_count] = new Packets(cap_data, user, myFont);
-        packet_count++;
-        //}
-      }else{
-        first_passed_time = Integer.parseInt(cap_data[7]);
-        packets[packet_count] = new Packets(cap_data, user, myFont);
-        packet_count++;
-        difference = millis();
+        if(total_count > 1){
+          //if(packets[packet_count - 1].checkPre(cap_data[4], cap_data[6], cap_data[7], cap_data[8])){
+          packets[packet_count] = new Packets(cap_data, user, myFont);
+          packet_count++;
+          //}
+        }else{
+          first_passed_time = Integer.parseInt(cap_data[7]);
+          packets[packet_count] = new Packets(cap_data, user, myFont);
+          packet_count++;
+          difference = millis();
+        }
       }
     }
   }
@@ -376,6 +382,7 @@ class Packets {
   float rotz, roty;
   int create_time;
   boolean print_flag;
+  int db_count;
 
   Packets(String packets[], Node node, PFont font){
     count = Integer.parseInt(packets[0]);
@@ -389,6 +396,7 @@ class Packets {
     //addr_name = packets[8];
     trans_flag = Boolean.valueOf(packets[8]);
     tcp_flag = packets[9];
+    ip_map.put(my_ip, Integer.parseInt(packets[10]));
     life = 70;
     node_x = node.x;
     node_y = node.y;
@@ -771,9 +779,16 @@ class Packets {
         lo_state = 3;
       }
     }else if(mode == 3 || mode == 4 || mode == 5){
+      /* IPのみのプロット
       ip_x = -box_size/2;
       ip_y = -box_size/2 + div_addr[0] * box_size / 256;
       ip_z = -box_size/2 + div_addr[1] * box_size / 256;
+      */
+      /* Y軸にlog（回数）、Z軸にIP */
+      ip_x = -box_size/2;
+      ip_y = box_size/2 - log(ip_map.get(my_ip)) / log(max_ip_count) * box_size;
+      ip_z = -box_size/2 + (div_addr[0] * 256 + div_addr[1]) * box_size / 65536;
+      
     }
     else if(mode == 6){
       ip_x = -box_size/2;
@@ -894,18 +909,22 @@ void keyReleased(){
 
 void draw3D(){
   strokeWeight(1.5);
+  /* Y軸に並行 */
   stroke(200, 90, 9);
   line(-box_size/2, -box_size/2, -box_size/2, -box_size/2, box_size/2, -box_size/2);
-  line(-box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2);
   line(-box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2);
-  line(-box_size/2, -box_size/2, box_size/2, -box_size/2, -box_size/2, -box_size/2);
 
   line(box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2);
-  line(box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, box_size/2);
   line(box_size/2, box_size/2, box_size/2, box_size/2, -box_size/2, box_size/2);
+
+  /* Z軸に並行 */
+  stroke(280, 80, 9);
+  line(-box_size/2, box_size/2, -box_size/2, -box_size/2, box_size/2, box_size/2);
+  line(-box_size/2, -box_size/2, box_size/2, -box_size/2, -box_size/2, -box_size/2);
+  line(box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, box_size/2);
   line(box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2, -box_size/2);
 
-
+  /* X軸に並行 */
   stroke(138, 75, 9);
   line(-box_size/2, -box_size/2, -box_size/2, box_size/2, -box_size/2, -box_size/2);
   line(-box_size/2, box_size/2, -box_size/2, box_size/2, box_size/2, -box_size/2);
